@@ -2,6 +2,7 @@ package it.unibo.oop.lab.lambda;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -12,9 +13,6 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 
 /**
  * This class will contain four utility functions on lists and maps, of which the first one is provided as example.
@@ -68,7 +66,17 @@ public final class LambdaUtilities {
         /*
          * Suggestion: consider Optional.filter
          */
-        return emptyList();
+        final List<Optional<T>> list2 = new ArrayList<>(list.size());
+        for (final T t : list) {
+            if (pre.test(t)) {
+                final Optional<T> newOp = Optional.of(t);
+                list2.add(newOp);
+            } else {
+                final Optional<T> newOp = Optional.empty();
+                list2.add(newOp);
+            }
+        }
+        return list2;
     }
 
     /**
@@ -89,7 +97,16 @@ public final class LambdaUtilities {
         /*
          * Suggestion: consider Map.merge
          */
-        return emptyMap();
+        final Map<R, Set<T>> map2 = new HashMap<>();
+
+        for (final T t : list) {
+            map2.merge(op.apply(t), Set.of(t), (x, y) -> {
+                final Set<T> set = new HashSet<>(x);
+                set.addAll(y);
+                return set;
+            });
+        }
+        return map2;
     }
 
     /**
@@ -112,7 +129,12 @@ public final class LambdaUtilities {
          *
          * Keep in mind that a map can be iterated through its forEach method
          */
-        return emptyMap();
+        final Map<K, V> map2 = new HashMap<>();
+        final Set<Map.Entry<K, Optional<V>>> set = map.entrySet();
+        for (final Map.Entry<K, Optional<V>> entry : set) {
+            map2.put(entry.getKey(), entry.getValue().orElseGet(def));
+        }
+        return map2;
     }
 
     /**
