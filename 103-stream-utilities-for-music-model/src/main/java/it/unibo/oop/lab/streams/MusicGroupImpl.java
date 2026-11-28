@@ -1,5 +1,6 @@
 package it.unibo.oop.lab.streams;
 
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -32,42 +33,58 @@ public final class MusicGroupImpl implements MusicGroup {
 
     @Override
     public Stream<String> orderedSongNames() {
-        return null;
+        return songs.stream().map(Song::getSongName).sorted();
     }
 
     @Override
     public Stream<String> albumNames() {
-        return null;
+        return albums.keySet().stream().sorted();
     }
 
     @Override
     public Stream<String> albumInYear(final int year) {
-        return null;
+        return albums.entrySet().stream()
+        .filter(e -> e.getValue() == year)
+        .map(Map.Entry::getKey);
     }
 
     @Override
     public int countSongs(final String albumName) {
-        return -1;
+        return (int) songs.stream()
+        .filter(s -> s.getAlbumName().equals(Optional.of(albumName)))
+        .count();
     }
 
     @Override
     public int countSongsInNoAlbum() {
-        return -1;
+        return (int) songs.stream()
+        .filter(s -> s.getAlbumName().isEmpty())
+        .count();
     }
 
     @Override
     public OptionalDouble averageDurationOfSongs(final String albumName) {
-        return OptionalDouble.empty();
+        return songs.stream()
+        .filter(s -> s.getAlbumName().equals(Optional.of(albumName)))
+        .mapToDouble(Song::getDuration)
+        .average();
     }
 
     @Override
     public Optional<String> longestSong() {
-        return Optional.empty();
+        return songs.stream()
+        .max(Comparator.comparingDouble(Song::getDuration))
+        .map(Song::getSongName);
     }
 
     @Override
     public Optional<String> longestAlbum() {
-        return Optional.empty();
+        return albums.entrySet().stream()
+        .max(Comparator.comparingDouble(e -> songs.stream()
+            .filter(s -> s.getAlbumName().filter(e.getKey()::equals).isPresent())
+            .mapToDouble(Song::getDuration)
+            .sum()))
+        .map(Map.Entry::getKey);
     }
 
     private static final class Song {
